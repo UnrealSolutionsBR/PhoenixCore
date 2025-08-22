@@ -9,12 +9,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.List;
+
 public class FarmsListener implements Listener {
 
+    // ─────────────────────────────
+    // Colocar farm
+    // ─────────────────────────────
     @EventHandler
     public void onPlace(BlockPlaceEvent event) {
         Block block = event.getBlockPlaced();
@@ -32,7 +39,7 @@ public class FarmsListener implements Listener {
                         ageable.setAge(ageable.getMaximumAge()); // crecer al máximo
                         above.setBlockData(ageable);
                     }
-                }, 1L);
+                }, 100L);
 
                 player.sendMessage("§eYou placed a §6Wheat Farm§e!");
             } else {
@@ -41,10 +48,14 @@ public class FarmsListener implements Listener {
         }
     }
 
+    // ─────────────────────────────
+    // Romper trigo
+    // ─────────────────────────────
     @EventHandler
     public void onBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
 
+        // Romper trigo
         if (block.getType() == Material.WHEAT) {
             Player player = event.getPlayer();
 
@@ -56,28 +67,80 @@ public class FarmsListener implements Listener {
                 reward.setItemMeta(meta);
             }
 
-            // Intentar agregar al inventario
+            // Verificar espacio en inventario
             if (player.getInventory().firstEmpty() != -1) {
                 player.getInventory().addItem(reward);
             } else {
-                // Inventario lleno → soltar en la posición del jugador
-                player.getWorld().dropItem(player.getLocation(), reward);
-                player.sendMessage("§cYour inventory is full! The item was dropped at your feet.");
+                player.sendMessage("§cYour inventory is full! You cannot harvest until you make space.");
+                event.setCancelled(true);
+                return;
             }
 
             // Evitar drop vanilla
             event.setDropItems(false);
 
-            // Regenerar el trigo en 5 segundos
+            // Guardar referencia del hay bale debajo
+            Block hayBlock = block.getRelative(0, -1, 0);
+
+            // Regenerar el trigo en 5 segundos solo si el hay bale sigue ahí
             Block wheatBlock = block;
             Bukkit.getScheduler().runTaskLater(PhoenixPrisonCore.getInstance(), () -> {
-                wheatBlock.setType(Material.WHEAT);
-                if (wheatBlock.getBlockData() instanceof Ageable ageable) {
-                    ageable.setAge(ageable.getMaximumAge());
-                    wheatBlock.setBlockData(ageable);
+                if (hayBlock.getType() == Material.HAY_BLOCK && wheatBlock.getType() == Material.AIR) {
+                    wheatBlock.setType(Material.WHEAT);
+                    if (wheatBlock.getBlockData() instanceof Ageable ageable) {
+                        ageable.setAge(ageable.getMaximumAge());
+                        wheatBlock.setBlockData(ageable);
+                    }
                 }
-            }, 100L); // 100 ticks = 5 segundos
+            }, 100L);
+        }
+
+        // Romper hay bale (farm)
+        if (block.getType() == Material.HAY_BLOCK) {
+            Player player = event.getPlayer();
+
+            // Evitar drops vanilla
+            event.setDropItems(false);
+
+            // Eliminar trigo de arriba si existe
+            Block above = block.getRelative(0, 1, 0);
+            if (above.getType() == Material.WHEAT) {
+                above.setType(Material.AIR);
+            }
+
+            // Dar al jugador la Wheat Farm item
+            ItemStack farmItem = new ItemStack(Material.HAY_BLOCK, 1);
+            ItemMeta meta = farmItem.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName("§eWheat Farm");
+                meta.setLore(List.of(
+                        "§7Place this block on the ground",
+                        "§7to create a wheat farm"
+                ));
+                farmItem.setItemMeta(meta);
+            }
+
+            if (player.getInventory().firstEmpty() != -1) {
+                player.getInventory().addItem(farmItem);
+            } else {
+                player.sendMessage("§cYour inventory is full! You cannot break this farm until you make space.");
+                event.setCancelled(true); // bloquear el break si no hay espacio
+            }
+        }
+    }
+
+    // ─────────────────────────────
+    // Evitar que wheat se rompa por física al poner farms lado a lado
+    // ─────────────────────────────
+    @EventHandler
+    public void onPhysics(BlockPhysicsEvent event) {
+        Block block = event.getBlock();
+
+        if (block.getType() == Material.WHEAT) {
+            Block below = block.getRelative(0, -1, 0);
+            if (below.getType() == Material.HAY_BLOCK) {
+                event.setCancelled(true);
+            }
         }
     }
 }
-//
