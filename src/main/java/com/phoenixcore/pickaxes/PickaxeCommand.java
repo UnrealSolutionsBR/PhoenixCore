@@ -1,5 +1,6 @@
 package com.phoenixcore.pickaxes;
 
+import com.phoenixcore.PhoenixPrisonCore;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,11 +11,16 @@ public class PickaxeCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThis command can only be used in-game.");
+            sender.sendMessage("§cEste comando solo puede usarse en el juego.");
             return true;
         }
 
-        // Crear y dar el pico inicial con la skin por defecto
+        // Obtener skin por defecto desde config.yml
+        String defaultSkin = PhoenixPrisonCore.getInstance()
+                .getConfig()
+                .getString("pickaxes.default-skin", "wooden");
+
+        // Crear y dar el pico inicial
         player.getInventory().addItem(PickaxeManager.createPickaxe(
                 player,
                 0,      // blocksBroken
@@ -22,10 +28,10 @@ public class PickaxeCommand implements CommandExecutor {
                 0.0,    // xp inicial
                 0,      // fortune
                 0,      // explosive
-                "wooden" // skinId por defecto (puede leerse de config más adelante)
+                defaultSkin // skinId desde config.yml
         ));
 
-        player.sendMessage("§aYou have received your starter pickaxe!");
+        player.sendMessage("§a¡Se te ha entregado tu pico inicial!");
         return true;
     }
 }

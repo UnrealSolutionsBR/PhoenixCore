@@ -12,7 +12,7 @@ import java.util.UUID;
 
 public class DropListener implements Listener {
 
-    // Guardar la última vez que el jugador intentó tirar el pico
+    // Guardar la última vez que un jugador intentó tirar el pico
     private final HashMap<UUID, Long> lastDropAttempt = new HashMap<>();
 
     @EventHandler
@@ -26,22 +26,26 @@ public class DropListener implements Listener {
         long now = System.currentTimeMillis();
 
         // Tiempo de confirmación desde config.yml (por defecto 3 segundos)
-        int confirmSeconds = PhoenixPrisonCore.getInstance().getConfig().getInt("drop-confirm-seconds", 3);
+        int confirmSeconds = PhoenixPrisonCore.getInstance()
+                .getConfig()
+                .getInt("drop-confirm-seconds", 3);
 
-        // Si no hay registro previo o pasó más del tiempo configurado
+        // Si es el primer intento o ya pasó el tiempo de confirmación
         if (!lastDropAttempt.containsKey(uuid) || (now - lastDropAttempt.get(uuid)) > confirmSeconds * 1000L) {
-            event.setCancelled(true); // cancelar dropeo
+            event.setCancelled(true); // cancelar el dropeo
             lastDropAttempt.put(uuid, now);
 
-            // Mensajes (por ahora hardcodeados, luego podemos migrar a locales)
-            player.sendTitle("§4[!] §cCAREFUL",
-                    "§7Press §cQ §7again to drop your pickaxe",
-                    10, 40, 10);
-            player.sendMessage("§4[!] §7Press §cQ §7again to drop your pickaxe!");
+            // Mostrar título y mensaje de advertencia
+            player.sendTitle(
+                    "§4[!] §cCAREFUL",
+                    "§7Presiona §cQ §7otra vez para soltar tu pico",
+                    10, 40, 10
+            );
+            player.sendMessage("§4[!] §7Presiona §cQ §7otra vez para soltar tu pico!");
         } else {
-            // Segunda vez en menos de X segundos → permitir soltar
+            // Segunda vez dentro del tiempo → permitir soltar
             lastDropAttempt.remove(uuid);
-            player.sendMessage("§cYou have dropped your pickaxe.");
+            player.sendMessage("§cHas soltado tu pico.");
         }
     }
 }

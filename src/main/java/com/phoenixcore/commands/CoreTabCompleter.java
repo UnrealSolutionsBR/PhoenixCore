@@ -22,7 +22,7 @@ public class CoreTabCompleter implements TabCompleter {
                 suggestions.add("setskin");
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("setskin")) {
-            // Autocompletar IDs de skins desde SkinManager
+            // Autocompletar con las skins disponibles desde SkinManager
             suggestions.addAll(SkinManager.getAllSkinIds());
         }
 

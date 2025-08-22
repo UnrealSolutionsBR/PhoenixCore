@@ -36,18 +36,18 @@ public class BlockValueManager {
                 if (mat != null) {
                     values.put(mat, value);
                 } else {
-                    PhoenixPrisonCore.getInstance().getLogger().warning("Invalid block in blocks.yml: " + key);
+                    PhoenixPrisonCore.getInstance().getLogger().warning("§cBloque inválido en blocks.yml: " + key);
                 }
             }
         }
 
-        PhoenixPrisonCore.getInstance().getLogger().info("§e[Pickaxes] Loaded " + values.size() + " blocks from blocks.yml");
+        PhoenixPrisonCore.getInstance().getLogger().info("§e[Pickaxes] Se cargaron " + values.size() + " bloques desde blocks.yml");
     }
 
     /**
      * Obtener el valor de XP base de un bloque
      */
     public static double getValue(Material material) {
-        return values.getOrDefault(material, 1.0); // Si no está configurado → 1.0
+        return values.getOrDefault(material, 1.0); // Si no está configurado → vale 1
     }
 }

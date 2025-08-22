@@ -15,7 +15,7 @@ public class LocaleManager {
      * Carga el archivo de idioma configurado en config.yml
      */
     public static void loadLocale() {
-        String lang = PhoenixPrisonCore.getInstance().getConfig().getString("Language", "EN");
+        String lang = PhoenixPrisonCore.getInstance().getConfig().getString("Language", "en_US");
         File localeFile = new File(PhoenixPrisonCore.getInstance().getDataFolder(), "locales/" + lang + ".yml");
 
         if (!localeFile.exists()) {
@@ -28,7 +28,7 @@ public class LocaleManager {
 
     /**
      * Devuelve un mensaje traducido con el prefijo configurado
-     * @param path ruta dentro del archivo de idioma (ej: "messages.reload")
+     * @param path ruta dentro del archivo de idioma (ej: "reload", "no-permission")
      */
     public static String getMessage(String path) {
         if (localeConfig == null) {

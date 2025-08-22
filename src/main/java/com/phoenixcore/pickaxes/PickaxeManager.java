@@ -29,16 +29,23 @@ public class PickaxeManager {
     private static final NamespacedKey LEVEL_KEY =
             new NamespacedKey(PhoenixPrisonCore.getInstance(), "pickaxe_level");
 
-    public static ItemStack createPickaxe(Player player, int blocksBroken, int level, double xp, int fortune, int explosive, String skinId) {
+    /**
+     * Crea un pico personalizado con estadísticas y skin
+     */
+    public static ItemStack createPickaxe(Player player, int blocksBroken, int level, double xp,
+                                          int fortune, int explosive, String skinId) {
         SkinManager.SkinData skinData = SkinManager.getSkin(skinId);
 
+        // Crear item según el material de la skin
         ItemStack pickaxe = new ItemStack(skinData.material());
         ItemMeta meta = pickaxe.getItemMeta();
         if (meta == null) return pickaxe;
 
+        // Nombre con bloques rotos
         String formattedBlocks = FormatUtils.formatNumber(blocksBroken);
         meta.setDisplayName("§bPickaxe §7[" + formattedBlocks + "]");
 
+        // Lore del ítem
         List<String> lore = new ArrayList<>();
         lore.add("§7Efficiency ∞");
         lore.add("§7Unbreakable ∞");
@@ -47,6 +54,7 @@ public class PickaxeManager {
         lore.add("§7");
         lore.add("§fLevel: " + level);
 
+        // Barra de progreso de XP
         int needed = PhoenixPrisonCore.getInstance().getConfig().getInt("pickaxes.blocks-per-level", 100) * level;
         String progressBar = FormatUtils.getProgressBar((int) xp, needed, 10, "§a▮", "§8▮");
         int percent = (int) ((xp / (double) needed) * 100);
@@ -54,17 +62,20 @@ public class PickaxeManager {
         lore.add("§8" + progressBar + " (" + percent + "%)");
         lore.add("§7");
 
+        // Datos de skin
         lore.add("§fSkin: " + skinData.display());
         lore.add("§7XP Bonus: x" + skinData.bonus());
 
         meta.setLore(lore);
 
+        // Marcar como pickaxe custom
         meta.getPersistentDataContainer().set(CUSTOM_PICKAXE_KEY, PersistentDataType.BYTE, (byte) 1);
         meta.getPersistentDataContainer().set(BLOCKS_BROKEN_KEY, PersistentDataType.INTEGER, blocksBroken);
         meta.getPersistentDataContainer().set(SKIN_KEY, PersistentDataType.STRING, skinId);
         meta.getPersistentDataContainer().set(XP_KEY, PersistentDataType.DOUBLE, xp);
         meta.getPersistentDataContainer().set(LEVEL_KEY, PersistentDataType.INTEGER, level);
 
+        // Hacer irrompible y ocultar flags
         meta.setUnbreakable(true);
         meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE, ItemFlag.HIDE_ENCHANTS);
 
@@ -72,6 +83,7 @@ public class PickaxeManager {
         return pickaxe;
     }
 
+    // ───── Métodos auxiliares ─────
 
     public static boolean isCustomPickaxe(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return false;

@@ -16,7 +16,7 @@ public class CoreCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        // Ayuda básica si no hay argumentos
+        // Sin argumentos → mostrar ayuda
         if (args.length == 0) {
             sender.sendMessage("§bPhoenixPrisonCore §7- Commands:");
             sender.sendMessage(" §f/" + label + " reload §7→ Reload configuration and locales");
@@ -24,7 +24,9 @@ public class CoreCommand implements CommandExecutor {
             return true;
         }
 
-        // /phoenixcore reload
+        // ───────────────
+        //  /phoenixcore reload
+        // ───────────────
         if (args[0].equalsIgnoreCase("reload")) {
             if (!sender.hasPermission("phoenixcore.reload")) {
                 sender.sendMessage(LocaleManager.getMessage("no-permission"));
@@ -33,7 +35,6 @@ public class CoreCommand implements CommandExecutor {
 
             PhoenixPrisonCore.getInstance().reloadConfig();
             LocaleManager.loadLocale();
-            // Recargar configs de pickaxes también (skins y valores de bloques)
             SkinManager.loadSkins();
             BlockValueManager.loadValues();
 
@@ -41,7 +42,9 @@ public class CoreCommand implements CommandExecutor {
             return true;
         }
 
-        // /phoenixcore setskin <skin>
+        // ───────────────
+        //  /phoenixcore setskin <skin>
+        // ───────────────
         if (args[0].equalsIgnoreCase("setskin")) {
             if (!(sender instanceof Player player)) {
                 sender.sendMessage(LocaleManager.getMessage("only-player"));
@@ -75,14 +78,14 @@ public class CoreCommand implements CommandExecutor {
                 return true;
             }
 
-            // Recuperar datos actuales del pico
+            // Recuperar stats actuales del pico
             int blocks = PickaxeManager.getBlocksBroken(inHand);
             int level = PickaxeManager.getLevel(inHand);
             double xp = PickaxeManager.getXP(inHand);
             int fortune = 0;   // reservado para futuro
             int explosive = 0; // reservado para futuro
 
-            // Regenerar el pico con la nueva skin (manteniendo stats)
+            // Regenerar el pico con la nueva skin
             ItemStack updated = PickaxeManager.createPickaxe(player, blocks, level, xp, fortune, explosive, skinId);
             player.getInventory().setItemInMainHand(updated);
 

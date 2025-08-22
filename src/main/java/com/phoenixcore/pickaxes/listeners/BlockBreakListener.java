@@ -17,13 +17,13 @@ public class BlockBreakListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = player.getInventory().getItemInMainHand();
 
-        // Validar que sea un pico custom
+        // Validar que el ítem sea un pico custom
         if (!PickaxeManager.isCustomPickaxe(item)) return;
 
-        // Bloques +1
+        // Incrementar bloques rotos
         int blocks = PickaxeManager.getBlocksBroken(item) + 1;
 
-        // Skin y bonus
+        // Obtener skin y bonus
         String skinId = PickaxeManager.getSkin(item);
         SkinManager.SkinData skinData = SkinManager.getSkin(skinId);
 
@@ -31,7 +31,7 @@ public class BlockBreakListener implements Listener {
         double xp = PickaxeManager.getXP(item);
         int level = PickaxeManager.getLevel(item);
 
-        // XP base desde blocks.yml
+        // XP base del bloque desde blocks.yml
         double baseValue = BlockValueManager.getValue(event.getBlock().getType());
 
         // Ganancia de XP con bonus de skin
@@ -39,15 +39,18 @@ public class BlockBreakListener implements Listener {
         xp += gain;
 
         // Revisar si sube de nivel
-        int needed = PhoenixPrisonCore.getInstance().getConfig().getInt("pickaxes.blocks-per-level", 100) * level;
+        int needed = PhoenixPrisonCore.getInstance().getConfig()
+                .getInt("pickaxes.blocks-per-level", 100) * level;
+
         while (xp >= needed) {
             xp -= needed;
             level++;
-            player.sendMessage("§6Your pickaxe leveled up to §e" + level + "§6!");
-            needed = PhoenixPrisonCore.getInstance().getConfig().getInt("pickaxes.blocks-per-level", 100) * level;
+            player.sendMessage("§6¡Tu pico ha subido al nivel §e" + level + "§6!");
+            needed = PhoenixPrisonCore.getInstance().getConfig()
+                    .getInt("pickaxes.blocks-per-level", 100) * level;
         }
 
-        // Actualizar el pico con datos nuevos
+        // Actualizar el pico con los nuevos datos
         ItemStack updated = PickaxeManager.createPickaxe(player, blocks, level, xp, 0, 0, skinId);
         player.getInventory().setItemInMainHand(updated);
     }
