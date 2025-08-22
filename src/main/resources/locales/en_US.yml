@@ -4,6 +4,7 @@ messages:
   reload: "&aConfiguration successfully reloaded."
   no-permission: "&cYou don't have permission to do this."
   only-player: "&cThis command can only be used in-game."
+  farms-sneak-to-break: "&cSneak (Shift) to remove the farm."
 
   # Pickaxe
   pickaxe-given: "&aYou have received your starter pickaxe!"

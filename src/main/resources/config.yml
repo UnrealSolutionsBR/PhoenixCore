@@ -15,7 +15,7 @@
 ##################################################################################################
 
 # Language file you want to use
-Language: en_US.yml
+Language: en_US
 # Defines if you want to auto download default locale files from GitHub repository.
 # Disable this if you already have your own locale set up.
 LanguageDownload: true

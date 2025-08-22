@@ -1,6 +1,7 @@
 package com.phoenixcore.farms;
 
 import com.phoenixcore.PhoenixPrisonCore;
+import com.phoenixcore.locale.LocaleManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,10 +18,14 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.List;
+import java.util.*;
 import java.util.Map;
 
 public class FarmsListener implements Listener {
+
+    // ───────── Nuevo: cooldown por jugador para el mensaje de "debes agacharte"
+    private static final long COOLDOWN_MS = 5000L;
+    private final Map<UUID, Long> lastSneakWarn = new HashMap<>();
 
     // ─────────────────────────────
     // Colocar farm normal (1x) → solo si el ítem es una farm válida (FarmsConfig)
@@ -131,8 +136,8 @@ public class FarmsListener implements Listener {
 
     // ─────────────────────────────
     // Left Click:
-    //  - Si clickeas el bloque base → recoger toda la farm
-    //  - Si clickeas el cultivo encima (Ageable o no) con una farm debajo → cosechar (recompensa + regen)
+    //  - Si clickeas el bloque base → AHORA requiere shift para recoger la farm
+    //  - Si clickeas el cultivo encima con una farm debajo → cosechar
     // ─────────────────────────────
     @EventHandler
     public void onLeftClickFarm(PlayerInteractEvent event) {
@@ -142,60 +147,71 @@ public class FarmsListener implements Listener {
         Block clicked = event.getClickedBlock();
         if (clicked == null) return;
 
-        // 1) Si es el bloque base de una farm → recoger farm (misma lógica de antes)
+        Player player = event.getPlayer();
+
+        // 1) Si es el bloque base de una farm → solo se puede recoger haciendo shift
         if (FarmsManager.isFarm(clicked.getLocation())) {
             event.setCancelled(true);
-            breakFarmAndGiveItem(clicked, event.getPlayer());
+            if (!player.isSneaking()) {
+                warnMustSneak(player);
+                return;
+            }
+            breakFarmAndGiveItem(clicked, player);
             return;
         }
 
-        // 2) Si es el cultivo encima de una farm (wheat/carrots o calabaza/melón, etc.) → cosechar
+        // 2) Si es el cultivo encima de una farm → cosechar (no requiere shift)
         Block below = clicked.getRelative(0, -1, 0);
         if (FarmsManager.isFarm(below.getLocation())) {
             event.setCancelled(true); // evita rotura vanilla
-            harvestCrop(clicked, below, event.getPlayer());
+            harvestCrop(clicked, below, player);
         }
     }
 
     // ─────────────────────────────
-    // Romper cultivo o bloque cosechable (wheat, carrots, pumpkin, melon, etc.)
-    // Si debajo hay farm → dar recompensa y regenerar
+    // Romper bloques:
+    //  - Si rompe cultivo encima de una farm → cosechar (no requiere shift)
+    //  - Si rompe el bloque base → requiere shift o se cancela con aviso (cooldown)
     // ─────────────────────────────
     @EventHandler
     public void onBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
+        Player player = event.getPlayer();
 
-        // Caso A: cultivo Ageable (wheat, carrots, etc.)
+        // Caso A: cultivo Ageable (wheat, carrots, etc.) con base de farm
         if (block.getBlockData() instanceof Ageable) {
             Block base = block.getRelative(0, -1, 0);
             if (!FarmsManager.isFarm(base.getLocation())) return;
 
             event.setDropItems(false);
             event.setCancelled(true); // manejamos la cosecha manualmente
-            harvestCrop(block, base, event.getPlayer());
+            harvestCrop(block, base, player);
             return;
         }
 
-        // Caso B: bloque cosechable NO Ageable (pumpkin, melon, etc.)
+        // Caso B: bloque cosechable NO Ageable (pumpkin, melon, etc.) con base de farm
         Block base = block.getRelative(0, -1, 0);
         if (FarmsManager.isFarm(base.getLocation())) {
             event.setDropItems(false);
             event.setCancelled(true); // manejamos la cosecha manualmente
-            harvestCrop(block, base, event.getPlayer());
+            harvestCrop(block, base, player);
             return;
         }
 
-        // Caso C: romper el bloque base de la farm → recoger farm
+        // Caso C: romper el bloque base de la farm → requiere shift
         if (FarmsManager.isFarm(block.getLocation())) {
             event.setDropItems(false);
             event.setCancelled(true);
-            breakFarmAndGiveItem(block, event.getPlayer());
+            if (!player.isSneaking()) {
+                warnMustSneak(player);
+                return;
+            }
+            breakFarmAndGiveItem(block, player);
         }
     }
 
     // ─────────────────────────────
     // Evitar que el cultivo Ageable se rompa por física cuando es parte de una farm
-    // (No aplica a pumpkin/melon, pero no hace daño mantenerlo para Ageable)
     // ─────────────────────────────
     @EventHandler
     public void onPhysics(BlockPhysicsEvent event) {
@@ -208,10 +224,23 @@ public class FarmsListener implements Listener {
         }
     }
 
+    // ───────── Nuevo: aviso con cooldown y reinicio de ventana
+    private void warnMustSneak(Player player) {
+        long now = System.currentTimeMillis();
+        UUID id = player.getUniqueId();
+        Long last = lastSneakWarn.get(id);
+
+        if (last == null || (now - last) >= COOLDOWN_MS) {
+            player.sendMessage(LocaleManager.getMessage("farms-sneak-to-break"));
+            lastSneakWarn.put(id, now);
+        } else {
+            // No mostramos mensaje, pero reiniciamos ventana a partir de este intento
+            lastSneakWarn.put(id, now);
+        }
+    }
+
     // ─────────────────────────────
     // Cosecha: dar recompensa y regenerar
-    // 'crop' es el bloque del cultivo o del bloque cosechable (encima del base)
-    // 'base' es el bloque base registrado en FarmsManager
     // ─────────────────────────────
     private void harvestCrop(Block crop, Block base, Player player) {
         FarmsManager.FarmData data = FarmsManager.getFarmData(base.getLocation());
@@ -220,11 +249,8 @@ public class FarmsListener implements Listener {
         FarmsConfig.FarmDef def = FarmsConfig.get().getFarm(data.type());
         if (def == null) return;
 
-        // Validar que el bloque que se intenta cosechar coincide con el configurado
-        // (para evitar cosechar cualquier cosa encima del base).
-        // Nota: Para Ageable, el tipo del bloque es el propio cultivo; para pumpkin/melon también.
+        // Validar que el bloque a cosechar coincide con el configurado o es Ageable
         if (crop.getType() != def.cropBlock() && !(crop.getBlockData() instanceof Ageable)) {
-            // Si no coincide el tipo y además no es Ageable (que igual aceptamos), no cosechar.
             return;
         }
 
@@ -237,7 +263,7 @@ public class FarmsListener implements Listener {
         // Eliminar el cultivo actual
         crop.setType(Material.AIR);
 
-        // Recompensa total: amount_per_farm * count
+        // Recompensa total
         int total = Math.max(1, def.rewardAmountPerFarm() * Math.max(1, data.count()));
         ItemStack reward = new ItemStack(def.rewardType(), total);
         player.getInventory().addItem(reward);
@@ -256,7 +282,6 @@ public class FarmsListener implements Listener {
 
     // ─────────────────────────────
     // Colocar el cultivo/bloque en estado "maduro"
-    // Para Ageable lo maxeamos; para pumpkin/melon simplemente colocamos el bloque
     // ─────────────────────────────
     private void spawnMatureCrop(Block where, FarmsConfig.FarmDef def) {
         where.setType(def.cropBlock());
@@ -267,7 +292,7 @@ public class FarmsListener implements Listener {
     }
 
     // ─────────────────────────────
-    // Recoger la farm completa (devuelve exactamente 'count' ítems del tipo correcto)
+    // Recoger la farm completa
     // ─────────────────────────────
     private void breakFarmAndGiveItem(Block baseBlock, Player player) {
         FarmsManager.FarmData data = FarmsManager.getFarmData(baseBlock.getLocation());
