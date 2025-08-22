@@ -1,0 +1,16 @@
+name: PhoenixPrisonCore
+version: 1.0.0
+main: com.phoenixcore.PhoenixPrisonCore
+api-version: 1.21
+author: Phoenix
+description: The main core plugin for managing all prison server features, including pickaxes, mines, ranks, and economy.
+website: https://yourwebsite.com
+
+commands:
+  pickaxe:
+    description: Gives the player their starter pickaxe
+    usage: /pickaxe
+  phoenixcore:
+    description: Main command for the PhoenixCore
+    usage: /phoenixcore <reload|setskin>
+    aliases: [ pc, pcore ]

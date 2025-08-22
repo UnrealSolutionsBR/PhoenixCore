@@ -1,0 +1,17 @@
+prefix: "&b[PhoenixCore] "
+
+messages:
+  reload: "&aConfiguration successfully reloaded."
+  no-permission: "&cYou don't have permission to do this."
+  only-player: "&cThis command can only be used in-game."
+  pickaxe-given: "&aYou have received your starter pickaxe!"
+  pickaxe-level-up: "&6Your pickaxe has leveled up to &e%level%&6!"
+  drop-warning: "&cPress Q again to confirm dropping your pickaxe!"
+  drop-success: "&cYou have dropped your pickaxe."
+  drop-title: "&4[!] &cCAREFUL"
+  drop-subtitle: "&7Press &cQ again &7to drop your pickaxe"
+  core-info:
+    - "&bPhoenixPrisonCore &7- &fInformation"
+    - "&7Version: &f%version%"
+    - "&7Author: &f%author%"
+    - "&7Website: &f%website%"

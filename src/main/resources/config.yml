@@ -1,0 +1,34 @@
+##################################################################################################
+#           _____  _                      _        _____ _      _                                #
+#          |  __ \| |                    (_)      |  __ (_)    | |                               #
+#          | |__) | |__   ___   ___ _ __  ___  __ | |__) |  ___| | ____ ___  _____  ___          #
+#          |  ___/| '_ \ / _ \ / _ \ '_ \| \ \/ / |  ___/ |/ __| |/ / _` \ \/ / _ \/ __|         #
+#          | |    | | | | (_) |  __/ | | | |>  <  | |   | | (__|   < (_| |>  <  __/\__ \         #
+#          |_|    |_| |_|\___/ \___|_| |_|_/_/\_\ |_|   |_|\___|_|\_\__,_/_/\_\___||___/         #
+#                                                                                                #
+#          Welcome to the config file for PhoenixPickaxes!                                       #
+#                                                                                                #
+#          Make sure to read the comments above each option to understand what it does.          #
+#                                                                                                #
+#          Happy configuring!                                                                    #
+#                                                                                                #
+##################################################################################################
+
+# Language file you want to use
+Language: EN
+# Defines if you want to auto download default locale files from GitHub repository.
+# Disable this if you already have your own locale set up.
+LanguageDownload: true
+
+# Enable or disable debug logs in console
+debug: false
+
+# Prevent players from accidentally dropping their prison items (like pickaxes)
+prevent-accidental-drop: true
+
+# Seconds before confirming a pickaxe drop (if prevent-accidental-drop is enabled)
+drop-confirm-seconds: 3
+
+pickaxes:
+  # How many XP are required per level (multiplied by the current level)
+  blocks-per-level: 100
