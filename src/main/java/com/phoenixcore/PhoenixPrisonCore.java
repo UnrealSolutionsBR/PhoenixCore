@@ -8,6 +8,7 @@ import com.phoenixcore.commands.CoreCommand;
 import com.phoenixcore.commands.FarmsCommand;
 import com.phoenixcore.commands.CoreTabCompleter;
 import com.phoenixcore.farms.FarmsListener;
+import com.phoenixcore.farms.FarmsManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -32,6 +33,9 @@ public class PhoenixPrisonCore extends JavaPlugin {
         createModuleFolder("economy");
         createModuleFolder("mines");
 
+        // 🔹 Cargar farms persistentes
+        FarmsManager.loadFarms();
+
         // Cargar módulos iniciales
         loadPickaxesModule();
         // (futuro) loadEconomyModule();
@@ -42,10 +46,10 @@ public class PhoenixPrisonCore extends JavaPlugin {
             getCommand("phoenixcore").setExecutor(new CoreCommand());
             getCommand("phoenixcore").setTabCompleter(new CoreTabCompleter());
         }
-        if (getCommand("pickaxe") != null) { // <— nuevo
+        if (getCommand("pickaxe") != null) {
             getCommand("pickaxe").setExecutor(new com.phoenixcore.pickaxes.PickaxeCommand());
         }
-        if (getCommand("farms") != null) { // ✅ corregido: era "trigo"
+        if (getCommand("farms") != null) {
             getCommand("farms").setExecutor(new FarmsCommand());
         }
 
@@ -54,6 +58,9 @@ public class PhoenixPrisonCore extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // 🔹 Guardar farms al apagar
+        FarmsManager.saveFarms();
+
         getLogger().info("§cPhoenixPrisonCore deshabilitado.");
     }
 
@@ -62,7 +69,7 @@ public class PhoenixPrisonCore extends JavaPlugin {
     // ─────────────────────────────
 
     private void loadPickaxesModule() {
-        // Registrar listeners de pickaxes
+        // Registrar listeners
         getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
         getServer().getPluginManager().registerEvents(new DropListener(), this);
         getServer().getPluginManager().registerEvents(new FarmsListener(), this);
@@ -73,8 +80,6 @@ public class PhoenixPrisonCore extends JavaPlugin {
 
         getLogger().info("§e[Módulo] Pickaxes cargado correctamente.");
     }
-
-    // Aquí después puedes añadir loadEconomyModule() y loadMinesModule()
 
     // ─────────────────────────────
     //   Utilidad
