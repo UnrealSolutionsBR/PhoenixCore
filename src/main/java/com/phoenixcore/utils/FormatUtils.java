@@ -4,21 +4,34 @@ import java.text.DecimalFormat;
 
 public class FormatUtils {
 
+    private static final DecimalFormat df = new DecimalFormat("0.##");
+
+    private static final String[] SUFFIXES = {
+            "",     // < 1000
+            "K",    // 10^3
+            "M",    // 10^6
+            "B",    // 10^9
+            "T",    // 10^12
+            "Qa",   // 10^15
+            "Qi"    // 10^18
+    };
+
     /**
-     * Formatea un número grande en estilo K, M, B.
+     * Formatea un número largo en estilo K, M, B, T, Qa, Qi
      * Ejemplo: 1,500 -> "1.5K", 2,000,000 -> "2M"
      */
-    public static String formatNumber(int number) {
+    public static String formatNumber(long number) {
         if (number < 1000) {
             return String.valueOf(number);
         }
-        if (number < 1_000_000) {
-            return new DecimalFormat("0.#").format(number / 1000.0) + "K";
+
+        int exp = (int) (Math.log10(number) / 3); // cada 3 ceros cambiamos de sufijo
+        if (exp >= SUFFIXES.length) {
+            exp = SUFFIXES.length - 1; // limitar a Qi
         }
-        if (number < 1_000_000_000) {
-            return new DecimalFormat("0.#").format(number / 1_000_000.0) + "M";
-        }
-        return new DecimalFormat("0.#").format(number / 1_000_000_000.0) + "B";
+
+        double value = number / Math.pow(1000, exp);
+        return df.format(value) + SUFFIXES[exp];
     }
 
     /**

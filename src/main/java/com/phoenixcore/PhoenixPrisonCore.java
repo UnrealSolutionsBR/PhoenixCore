@@ -5,6 +5,7 @@ import com.phoenixcore.pickaxes.listeners.BlockBreakListener;
 import com.phoenixcore.pickaxes.listeners.DropListener;
 import com.phoenixcore.pickaxes.BlockValueManager;
 import com.phoenixcore.commands.CoreCommand;
+import com.phoenixcore.commands.FarmsCommand;
 import com.phoenixcore.commands.CoreTabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -42,6 +43,9 @@ public class PhoenixPrisonCore extends JavaPlugin {
         }
         if (getCommand("pickaxe") != null) { // <— nuevo
             getCommand("pickaxe").setExecutor(new com.phoenixcore.pickaxes.PickaxeCommand());
+        }
+        if (getCommand("trigo") != null) {
+            getCommand("trigo").setExecutor(new com.phoenixcore.commands.FarmsCommand());
         }
 
         getLogger().info("§aPhoenixPrisonCore habilitado correctamente.");
