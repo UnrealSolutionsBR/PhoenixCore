@@ -7,6 +7,7 @@ import com.phoenixcore.pickaxes.BlockValueManager;
 import com.phoenixcore.commands.CoreCommand;
 import com.phoenixcore.commands.FarmsCommand;
 import com.phoenixcore.commands.CoreTabCompleter;
+import com.phoenixcore.farms.FarmsListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -44,8 +45,8 @@ public class PhoenixPrisonCore extends JavaPlugin {
         if (getCommand("pickaxe") != null) { // <— nuevo
             getCommand("pickaxe").setExecutor(new com.phoenixcore.pickaxes.PickaxeCommand());
         }
-        if (getCommand("trigo") != null) {
-            getCommand("trigo").setExecutor(new com.phoenixcore.commands.FarmsCommand());
+        if (getCommand("farms") != null) { // ✅ corregido: era "trigo"
+            getCommand("farms").setExecutor(new FarmsCommand());
         }
 
         getLogger().info("§aPhoenixPrisonCore habilitado correctamente.");
@@ -64,6 +65,7 @@ public class PhoenixPrisonCore extends JavaPlugin {
         // Registrar listeners de pickaxes
         getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
         getServer().getPluginManager().registerEvents(new DropListener(), this);
+        getServer().getPluginManager().registerEvents(new FarmsListener(), this);
 
         // Cargar configuraciones
         SkinManager.loadSkins();

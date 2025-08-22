@@ -10,9 +10,9 @@ commands:
   pickaxe:
     description: Gives the player their starter pickaxe
     usage: /pickaxe
-  trigo:
+  farms:
     description: Da un bloque de heno para la granja de trigo
-    usage: /trigo
+    usage: /farms
   phoenixcore:
     description: Main command for the PhoenixCore
     usage: /phoenixcore <reload|setskin>
