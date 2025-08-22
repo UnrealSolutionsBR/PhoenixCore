@@ -4,6 +4,7 @@ import com.phoenixcore.pickaxes.SkinManager;
 import com.phoenixcore.pickaxes.listeners.BlockBreakListener;
 import com.phoenixcore.pickaxes.listeners.DropListener;
 import com.phoenixcore.pickaxes.BlockValueManager;
+import com.phoenixcore.farms.FarmsConfig;
 import com.phoenixcore.commands.CoreCommand;
 import com.phoenixcore.commands.FarmsCommand;
 import com.phoenixcore.commands.CoreTabCompleter;
@@ -32,9 +33,13 @@ public class PhoenixPrisonCore extends JavaPlugin {
         createModuleFolder("pickaxes");
         createModuleFolder("economy");
         createModuleFolder("mines");
+        createModuleFolder("farms");
 
         // 🔹 Cargar farms persistentes
-        FarmsManager.loadFarms();
+        getServer().getWorlds().forEach(FarmsManager::reloadWorld);
+
+        // 🔹 Cargar configuración de tipos de farms (definiciones)
+        FarmsConfig.get(); // fuerza la carga inicial de farms/farms.yml
 
         // Cargar módulos iniciales
         loadPickaxesModule();
@@ -59,7 +64,7 @@ public class PhoenixPrisonCore extends JavaPlugin {
     @Override
     public void onDisable() {
         // 🔹 Guardar farms al apagar
-        FarmsManager.saveFarms();
+        FarmsManager.saveAllNow();
 
         getLogger().info("§cPhoenixPrisonCore deshabilitado.");
     }

@@ -1,0 +1,109 @@
+# PhoenixPrisonCore - Farms Configuration
+# Puedes crear tantas farms como quieras.
+# La clave de cada farm (wheat, carrot, etc.) es su "farmType" que guardaremos en el item con PDC.
+
+version: 1
+
+global:
+  # Límite máximo que puede stackearse en un mismo bloque
+  stack_limit: 64
+
+  # Tiempo (ticks) para regenerar el cultivo luego de cosechar (20 ticks = 1s)
+  regrow_delay_ticks: 100
+
+  # Si está en true, además del PDC validaremos que el display name coincida.
+  validate_item_display_name: true
+
+# Definición de farms
+farms:
+
+  wheat:
+    # Item que representa la farm en el inventario. El tipo físico del item suele ser el mismo que el "base_block".
+    item:
+      name: "§eWheat Farm"
+      lore:
+        - "§7Place this block on the ground"
+        - "§7to create a wheat farm"
+
+    # Bloque base que se coloca en el mundo para anclar la farm
+    base_block: HAY_BLOCK
+
+    # Cultivo que aparece encima del base_block
+    crop_block: WHEAT
+
+    # Recompensa por cada unidad de farm (se multiplica por el stack guardado en ese bloque)
+    reward:
+      type: WHEAT
+      amount_per_farm: 1
+
+  potato:
+    item:
+      name: "§ePotato Farm"
+      lore:
+        - "§7Place this block on the ground"
+        - "§7to grow potatoes"
+    base_block: HAY_BLOCK
+    crop_block: POTATOES
+    reward:
+      type: POTATO
+      amount_per_farm: 1
+
+  beetroot:
+    item:
+      name: "§eBeetroot Farm"
+      lore:
+        - "§7Place this block on the ground"
+        - "§7to grow beetroots"
+    base_block: HAY_BLOCK
+    crop_block: BEETROOTS
+    reward:
+      type: BEETROOT
+      amount_per_farm: 1
+
+  carrot:
+    item:
+      name: "§eCarrot Farm"
+      lore:
+        - "§7Place this block on the ground"
+        - "§7to grow carrots"
+    base_block: HAY_BLOCK
+    crop_block: CARROTS
+    reward:
+      type: CARROT
+      amount_per_farm: 1
+
+  melon:
+    item:
+      name: "§eMelon Farm"
+      lore:
+        - "§7Place this block on the ground"
+        - "§7to grow melons"
+    base_block: HAY_BLOCK
+    crop_block: MELON
+    reward:
+      type: MELON
+      amount_per_farm: 1
+
+  pumpkin:
+    item:
+      name: "§ePumpkin Farm"
+      lore:
+        - "§7Place this block on the ground"
+        - "§7to grow pumpkins"
+    base_block: HAY_BLOCK
+    crop_block: PUMPKIN
+    reward:
+      type: PUMPKIN
+      amount_per_farm: 1
+
+  netherwart:
+    item:
+      name: "§eNether Wart Farm"
+      lore:
+        - "§7Place this block on the ground"
+        - "§7to grow nether warts"
+    base_block: HAY_BLOCK
+    crop_block: NETHER_WART
+    reward:
+      type: NETHER_WART
+      amount_per_farm: 1
