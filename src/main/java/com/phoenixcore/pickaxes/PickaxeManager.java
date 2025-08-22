@@ -31,7 +31,7 @@ public class PickaxeManager {
             new NamespacedKey(PhoenixPrisonCore.getInstance(), "pickaxe_level");
 
     /**
-     * Crea un pico personalizado con estadísticas y skin
+     * Crea un pico personalizado con estadísticas y skin.
      */
     public static ItemStack createPickaxe(Player player, int blocksBroken, int level, double xp,
                                           int fortune, int explosive, String skinId) {
@@ -42,20 +42,20 @@ public class PickaxeManager {
         ItemMeta meta = pickaxe.getItemMeta();
         if (meta == null) return pickaxe;
 
-        // Nombre con bloques rotos (locale)
+        // Nombre con bloques rotos (SIN prefijo)
         String formattedBlocks = FormatUtils.formatNumber(blocksBroken);
-        String name = LocaleManager.getMessage("pickaxe-name")
+        String name = LocaleManager.getRawMessage("pickaxe-name")
                 .replace("%blocks%", formattedBlocks);
         meta.setDisplayName(name);
 
         // Barra de progreso de XP
         int needed = PhoenixPrisonCore.getInstance().getConfig().getInt("pickaxes.blocks-per-level", 100) * level;
         String progressBar = FormatUtils.getProgressBar((int) xp, needed, 10, "§a▮", "§8▮");
-        int percent = (int) ((xp / (double) needed) * 100);
+        int percent = needed > 0 ? (int) Math.floor((xp / (double) needed) * 100D) : 0;
 
-        // Lore desde locale
-        List<String> rawLore = LocaleManager.getMessageList("pickaxe-lore");
-        List<String> lore = new ArrayList<>();
+        // Lore desde locale (SIN prefijo)
+        List<String> rawLore = LocaleManager.getRawMessageList("pickaxe-lore");
+        List<String> lore = new ArrayList<>(rawLore.size());
         for (String line : rawLore) {
             lore.add(line
                     .replace("%fortune%", String.valueOf(fortune))
@@ -69,7 +69,7 @@ public class PickaxeManager {
         }
         meta.setLore(lore);
 
-        // Marcar como pickaxe custom
+        // Marcar como pickaxe custom y setear PDC
         meta.getPersistentDataContainer().set(CUSTOM_PICKAXE_KEY, PersistentDataType.BYTE, (byte) 1);
         meta.getPersistentDataContainer().set(BLOCKS_BROKEN_KEY, PersistentDataType.INTEGER, blocksBroken);
         meta.getPersistentDataContainer().set(SKIN_KEY, PersistentDataType.STRING, skinId);
@@ -94,7 +94,8 @@ public class PickaxeManager {
 
     public static int getBlocksBroken(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return 0;
-        return item.getItemMeta().getPersistentDataContainer().getOrDefault(BLOCKS_BROKEN_KEY, PersistentDataType.INTEGER, 0);
+        return item.getItemMeta().getPersistentDataContainer()
+                .getOrDefault(BLOCKS_BROKEN_KEY, PersistentDataType.INTEGER, 0);
     }
 
     public static void setBlocksBroken(ItemStack item, int blocks) {
@@ -106,7 +107,8 @@ public class PickaxeManager {
 
     public static String getSkin(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return "wooden";
-        return item.getItemMeta().getPersistentDataContainer().getOrDefault(SKIN_KEY, PersistentDataType.STRING, "wooden");
+        return item.getItemMeta().getPersistentDataContainer()
+                .getOrDefault(SKIN_KEY, PersistentDataType.STRING, "wooden");
     }
 
     public static void setSkin(ItemStack item, String skinId) {
@@ -117,8 +119,9 @@ public class PickaxeManager {
     }
 
     public static double getXP(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return 0;
-        return item.getItemMeta().getPersistentDataContainer().getOrDefault(XP_KEY, PersistentDataType.DOUBLE, 0.0);
+        if (item == null || !item.hasItemMeta()) return 0.0D;
+        return item.getItemMeta().getPersistentDataContainer()
+                .getOrDefault(XP_KEY, PersistentDataType.DOUBLE, 0.0D);
     }
 
     public static void setXP(ItemStack item, double xp) {
@@ -130,7 +133,8 @@ public class PickaxeManager {
 
     public static int getLevel(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return 1;
-        return item.getItemMeta().getPersistentDataContainer().getOrDefault(LEVEL_KEY, PersistentDataType.INTEGER, 1);
+        return item.getItemMeta().getPersistentDataContainer()
+                .getOrDefault(LEVEL_KEY, PersistentDataType.INTEGER, 1);
     }
 
     public static void setLevel(ItemStack item, int level) {
