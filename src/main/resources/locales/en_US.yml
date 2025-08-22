@@ -1,24 +1,69 @@
 prefix: "&b[PhoenixCore] "
 
 messages:
+  # ─────────────────────────────
+  # General
+  # ─────────────────────────────
   reload: "&aConfiguration successfully reloaded."
   no-permission: "&cYou don't have permission to do this."
   only-player: "&cThis command can only be used in-game."
-  farms-sneak-to-break: "&cSneak (Shift) to remove the farm."
 
+  # ─────────────────────────────
   # Pickaxe
+  # ─────────────────────────────
   pickaxe-given: "&aYou have received your starter pickaxe!"
   pickaxe-level-up: "&6Your pickaxe has leveled up to &e%level%&6!"
+  pickaxe-name: "&bPickaxe &7[%blocks%]"
+  pickaxe-lore:
+    - "&7Efficiency ∞"
+    - "&7Unbreakable ∞"
+    - "&7Fortune %fortune%"
+    - "&7Explosive %explosive%"
+    - "&7"
+    - "&fLevel: %level%"
+    - "&8%progress_bar% (%percent%%)"
+    - "&7"
+    - "&fSkin: %skin_display%"
+    - "&7XP Bonus: x%bonus%"
 
+  # ─────────────────────────────
   # Drop protection
+  # ─────────────────────────────
   drop-warning: "&cPress Q again to confirm dropping your pickaxe!"
   drop-success: "&cYou have dropped your pickaxe."
   drop-title: "&4[!] &cCAREFUL"
   drop-subtitle: "&7Press &cQ again &7to drop your pickaxe"
 
-  # Core command info
+  # ─────────────────────────────
+  # Core commands
+  # ─────────────────────────────
+  core-usage: "&cUsage: /%label% <reload|setskin>"
   core-info:
     - "&bPhoenixPrisonCore &7- &fInformation"
     - "&7Version: &f%version%"
     - "&7Author: &f%author%"
-    - "&7Website: &f%website%"
+
+  # ─────────────────────────────
+  # Pickaxe - Set Skin
+  # ─────────────────────────────
+  setskin-usage: "&cUsage: /%label% setskin <skin>"
+  setskin-available: "&7Available: &f%list%"
+  setskin-not-found: "&cSkin not found: &f%skin%"
+  setskin-not-pickaxe: "&cYou must hold your custom pickaxe to set the skin."
+  setskin-success: "&aYour pickaxe skin is now: &e%skin_display%"
+
+  # ─────────────────────────────
+  # Farms
+  # ─────────────────────────────
+  farms-usage: "&7Usage: &f/farms give <type> [amount]"
+  farms-available: "&7Available farms: &f%list%"
+  farms-unknown-type: "&cUnknown farm type: &f%type%"
+  farms-invalid-amount: "&cInvalid amount: &f%amount%"
+  farms-give-error: "&cCould not create the farm item. Contact an admin."
+  farms-give-success: "&aYou received &f%amount%x %farm_name%&a."
+  farms-place-need-air-above: "&cYou need an empty block above to place the farm."
+  farms-place-placed-one: "&eYou placed a &6%farm_name%&e!"
+  farms-place-placed-stacked: "&eYou placed &f%count%x &6%farm_name% &ein one block!"
+  farms-harvest-inv-full: "&cYour inventory is full! You cannot harvest until you make space."
+  farms-harvest-inv-partial: "&eYour inventory was partially full. &7Remaining farms dropped: &f%remaining%"
+  farms-sneak-to-break: "&cSneak (Shift) to remove the farm."

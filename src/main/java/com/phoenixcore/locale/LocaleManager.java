@@ -25,21 +25,19 @@ public class LocaleManager {
         }
 
         localeConfig = YamlConfiguration.loadConfiguration(localeFile);
-        PhoenixPrisonCore.getInstance().getLogger().info("§e[Locale] Loaded locale: " + lang);
+        PhoenixPrisonCore.getInstance().getLogger().info("[Locale] Loaded locale: " + lang);
     }
 
     /**
      * Devuelve un mensaje traducido con el prefijo configurado
-     * @param path ruta dentro del archivo de idioma (ej: "reload", "no-permission")
      */
     public static String getMessage(String path) {
         if (localeConfig == null) {
-            return ChatColor.RED + "Locale not loaded!";
+            return ChatColor.RED + "[Locale not loaded]";
         }
 
         String prefix = localeConfig.getString("prefix", "&7[PhoenixCore] ");
-        String message = localeConfig.getString("messages." + path, path);
-
+        String message = localeConfig.getString("messages." + path, "[MISSING: " + path + "]");
         return ChatColor.translateAlternateColorCodes('&', prefix + message);
     }
 
@@ -48,30 +46,31 @@ public class LocaleManager {
      */
     public static String getRawMessage(String path) {
         if (localeConfig == null) {
-            return ChatColor.RED + "Locale not loaded!";
+            return ChatColor.RED + "[Locale not loaded]";
         }
 
-        String message = localeConfig.getString("messages." + path, path);
+        String message = localeConfig.getString("messages." + path, "[MISSING: " + path + "]");
         return ChatColor.translateAlternateColorCodes('&', message);
     }
 
     /**
-     * Devuelve una lista de mensajes desde el locale.
+     * Devuelve una lista de mensajes desde el locale (con prefijo).
      * Útil para mensajes multilínea (ej: "core-info")
      */
     public static List<String> getMessageList(String path) {
         if (localeConfig == null) {
-            return List.of("Locale not loaded!");
+            return List.of("[Locale not loaded]");
         }
 
         List<String> list = localeConfig.getStringList("messages." + path);
         if (list == null || list.isEmpty()) {
-            return List.of(path);
+            return List.of("[MISSING: " + path + "]");
         }
 
+        String prefix = localeConfig.getString("prefix", "&7[PhoenixCore] ");
         List<String> colored = new ArrayList<>();
         for (String line : list) {
-            colored.add(ChatColor.translateAlternateColorCodes('&', line));
+            colored.add(ChatColor.translateAlternateColorCodes('&', prefix + line));
         }
         return colored;
     }

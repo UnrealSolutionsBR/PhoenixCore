@@ -67,8 +67,10 @@ public class CoreCommand implements CommandExecutor {
             }
 
             if (args.length < 2) {
-                player.sendMessage("§cUsage: /" + label + " setskin <skin>");
-                player.sendMessage("§7Available: §f" + String.join(", ", SkinManager.getAllSkinIds()));
+                player.sendMessage(LocaleManager.getMessage("setskin-usage")
+                        .replace("%label%", label));
+                player.sendMessage(LocaleManager.getMessage("setskin-available")
+                        .replace("%list%", String.join(", ", SkinManager.getAllSkinIds())));
                 return true;
             }
 
@@ -76,15 +78,17 @@ public class CoreCommand implements CommandExecutor {
 
             // Validar existencia de la skin
             if (!SkinManager.getAllSkinIds().contains(skinId)) {
-                player.sendMessage("§cSkin not found: §f" + skinId);
-                player.sendMessage("§7Available: §f" + String.join(", ", SkinManager.getAllSkinIds()));
+                player.sendMessage(LocaleManager.getMessage("setskin-not-found")
+                        .replace("%skin%", skinId));
+                player.sendMessage(LocaleManager.getMessage("setskin-available")
+                        .replace("%list%", String.join(", ", SkinManager.getAllSkinIds())));
                 return true;
             }
 
             // Validar que tenga un pico custom en la mano
             ItemStack inHand = player.getInventory().getItemInMainHand();
             if (!PickaxeManager.isCustomPickaxe(inHand)) {
-                player.sendMessage("§cYou must hold your custom pickaxe to change its skin.");
+                player.sendMessage(LocaleManager.getMessage("setskin-not-pickaxe"));
                 return true;
             }
 
@@ -99,14 +103,16 @@ public class CoreCommand implements CommandExecutor {
             ItemStack updated = PickaxeManager.createPickaxe(player, blocks, level, xp, fortune, explosive, skinId);
             player.getInventory().setItemInMainHand(updated);
 
-            player.sendMessage("§aYour pickaxe skin is now: §f" + SkinManager.getSkin(skinId).display());
+            player.sendMessage(LocaleManager.getMessage("setskin-success")
+                    .replace("%skin_display%", SkinManager.getSkin(skinId).display()));
             return true;
         }
 
         // ───────────────
         //  Uso por defecto
         // ───────────────
-        sender.sendMessage("§cUsage: /" + label + " <reload|setskin>");
+        sender.sendMessage(LocaleManager.getMessage("core-usage")
+                .replace("%label%", label));
         return true;
     }
 }

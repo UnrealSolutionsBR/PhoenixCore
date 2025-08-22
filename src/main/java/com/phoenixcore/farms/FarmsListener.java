@@ -57,7 +57,7 @@ public class FarmsListener implements Listener {
 
         Block above = base.getRelative(0, 1, 0);
         if (above.getType() != Material.AIR) {
-            event.getPlayer().sendMessage("§cYou need an empty block above to place the farm.");
+            event.getPlayer().sendMessage(LocaleManager.getMessage("farms-place-need-air-above"));
             return;
         }
 
@@ -72,7 +72,8 @@ public class FarmsListener implements Listener {
             }
         }, delay);
 
-        event.getPlayer().sendMessage("§eYou placed a §6" + def.itemName() + "§e!");
+        event.getPlayer().sendMessage(LocaleManager.getMessage("farms-place-placed-one")
+                .replace("%farm_name%", def.itemName()));
     }
 
     // ─────────────────────────────
@@ -110,7 +111,7 @@ public class FarmsListener implements Listener {
 
         Block above = placeAt.getRelative(0, 1, 0);
         if (above.getType() != Material.AIR) {
-            player.sendMessage("§cYou need an empty block above to place the farm.");
+            player.sendMessage(LocaleManager.getMessage("farms-place-need-air-above"));
             return;
         }
 
@@ -130,7 +131,9 @@ public class FarmsListener implements Listener {
             }
         }, delay);
 
-        player.sendMessage("§eYou placed §f" + farms + " §6" + def.itemName() + "§e in one block!");
+        player.sendMessage(LocaleManager.getMessage("farms-place-placed-stacked")
+                .replace("%count%", String.valueOf(farms))
+                .replace("%farm_name%", def.itemName()));
         event.setCancelled(true);
     }
 
@@ -256,7 +259,7 @@ public class FarmsListener implements Listener {
 
         // Espacio de inventario
         if (player.getInventory().firstEmpty() == -1) {
-            player.sendMessage("§cYour inventory is full! You cannot harvest until you make space.");
+            player.sendMessage(LocaleManager.getMessage("farms-harvest-inv-full"));
             return;
         }
 
@@ -334,7 +337,8 @@ public class FarmsListener implements Listener {
         }
 
         if (droppedOnGround) {
-            player.sendMessage("§eYour inventory was partially full. The remaining farms were dropped on the ground.");
+            player.sendMessage(LocaleManager.getMessage("farms-harvest-inv-partial")
+                    .replace("%remaining%", String.valueOf(remaining)));
         }
 
         // Quitar del mundo y del manager

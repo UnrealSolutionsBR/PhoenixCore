@@ -1,6 +1,7 @@
 package com.phoenixcore.commands;
 
 import com.phoenixcore.farms.FarmsConfig;
+import com.phoenixcore.locale.LocaleManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -12,23 +13,27 @@ public class FarmsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cThis command can only be used in-game.");
+            sender.sendMessage(LocaleManager.getMessage("only-player"));
             return true;
         }
 
         if (args.length == 0) {
-            player.sendMessage("§eUsage: /" + label + " <farmType> [amount]");
-            player.sendMessage("§7Available farms: §f" + String.join(", ",
-                    FarmsConfig.get().allFarms().stream().map(FarmsConfig.FarmDef::type).toList()));
+            player.sendMessage(LocaleManager.getMessage("farms-usage")
+                    .replace("%label%", label));
+            player.sendMessage(LocaleManager.getMessage("farms-available")
+                    .replace("%list%", String.join(", ",
+                            FarmsConfig.get().allFarms().stream().map(FarmsConfig.FarmDef::type).toList())));
             return true;
         }
 
         String farmType = args[0].toLowerCase();
         FarmsConfig.FarmDef def = FarmsConfig.get().getFarm(farmType);
         if (def == null) {
-            player.sendMessage("§cUnknown farm type: §f" + farmType);
-            player.sendMessage("§7Available: §f" + String.join(", ",
-                    FarmsConfig.get().allFarms().stream().map(FarmsConfig.FarmDef::type).toList()));
+            player.sendMessage(LocaleManager.getMessage("farms-unknown-type")
+                    .replace("%type%", farmType));
+            player.sendMessage(LocaleManager.getMessage("farms-available")
+                    .replace("%list%", String.join(", ",
+                            FarmsConfig.get().allFarms().stream().map(FarmsConfig.FarmDef::type).toList())));
             return true;
         }
 
@@ -38,18 +43,21 @@ public class FarmsCommand implements CommandExecutor {
                 amount = Math.min(Integer.parseInt(args[1]), FarmsConfig.get().getStackLimit());
                 if (amount <= 0) amount = 1;
             } catch (NumberFormatException e) {
-                player.sendMessage("§cInvalid amount. Using 1.");
+                player.sendMessage(LocaleManager.getMessage("farms-invalid-amount")
+                        .replace("%amount%", args[1]));
             }
         }
 
         ItemStack farmItem = FarmsConfig.get().buildFarmItem(farmType, amount);
         if (farmItem == null) {
-            player.sendMessage("§cError creating farm item for type: " + farmType);
+            player.sendMessage(LocaleManager.getMessage("farms-give-error"));
             return true;
         }
 
         player.getInventory().addItem(farmItem);
-        player.sendMessage("§aYou received §f" + amount + " §e" + def.itemName() + "§a!");
+        player.sendMessage(LocaleManager.getMessage("farms-give-success")
+                .replace("%amount%", String.valueOf(amount))
+                .replace("%farm_name%", def.itemName()));
         return true;
     }
 }

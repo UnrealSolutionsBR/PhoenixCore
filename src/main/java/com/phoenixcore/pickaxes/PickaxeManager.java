@@ -1,6 +1,7 @@
 package com.phoenixcore.pickaxes;
 
 import com.phoenixcore.PhoenixPrisonCore;
+import com.phoenixcore.locale.LocaleManager;
 import com.phoenixcore.utils.FormatUtils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -41,31 +42,31 @@ public class PickaxeManager {
         ItemMeta meta = pickaxe.getItemMeta();
         if (meta == null) return pickaxe;
 
-        // Nombre con bloques rotos
+        // Nombre con bloques rotos (locale)
         String formattedBlocks = FormatUtils.formatNumber(blocksBroken);
-        meta.setDisplayName("§bPickaxe §7[" + formattedBlocks + "]");
-
-        // Lore del ítem
-        List<String> lore = new ArrayList<>();
-        lore.add("§7Efficiency ∞");
-        lore.add("§7Unbreakable ∞");
-        lore.add("§7Fortune " + fortune);
-        lore.add("§7Explosive " + explosive);
-        lore.add("§7");
-        lore.add("§fLevel: " + level);
+        String name = LocaleManager.getMessage("pickaxe-name")
+                .replace("%blocks%", formattedBlocks);
+        meta.setDisplayName(name);
 
         // Barra de progreso de XP
         int needed = PhoenixPrisonCore.getInstance().getConfig().getInt("pickaxes.blocks-per-level", 100) * level;
         String progressBar = FormatUtils.getProgressBar((int) xp, needed, 10, "§a▮", "§8▮");
         int percent = (int) ((xp / (double) needed) * 100);
 
-        lore.add("§8" + progressBar + " (" + percent + "%)");
-        lore.add("§7");
-
-        // Datos de skin
-        lore.add("§fSkin: " + skinData.display());
-        lore.add("§7XP Bonus: x" + skinData.bonus());
-
+        // Lore desde locale
+        List<String> rawLore = LocaleManager.getMessageList("pickaxe-lore");
+        List<String> lore = new ArrayList<>();
+        for (String line : rawLore) {
+            lore.add(line
+                    .replace("%fortune%", String.valueOf(fortune))
+                    .replace("%explosive%", String.valueOf(explosive))
+                    .replace("%level%", String.valueOf(level))
+                    .replace("%progress_bar%", progressBar)
+                    .replace("%percent%", String.valueOf(percent))
+                    .replace("%skin_display%", skinData.display())
+                    .replace("%bonus%", String.valueOf(skinData.bonus()))
+            );
+        }
         meta.setLore(lore);
 
         // Marcar como pickaxe custom

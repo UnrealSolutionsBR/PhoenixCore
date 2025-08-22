@@ -15,9 +15,12 @@ public class CoreTabCompleter implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> suggestions = new ArrayList<>();
 
-        String cmd = command.getName().toLowerCase();
+        String cmd = command.getName();
 
-        if (cmd.equals("phoenixcore")) {
+        // ───────────────
+        // phoenixcore
+        // ───────────────
+        if (cmd.equalsIgnoreCase("phoenixcore")) {
             if (args.length == 1) {
                 if (sender.hasPermission("phoenixcore.reload")) {
                     suggestions.add("reload");
@@ -26,16 +29,28 @@ public class CoreTabCompleter implements TabCompleter {
                     suggestions.add("setskin");
                 }
             } else if (args.length == 2 && args[0].equalsIgnoreCase("setskin")) {
-                // Autocompletar skins disponibles
-                suggestions.addAll(SkinManager.getAllSkinIds());
+                if (sender.hasPermission("phoenixcore.setskin")) {
+                    // Autocompletar skins disponibles
+                    suggestions.addAll(SkinManager.getAllSkinIds());
+                }
             }
         }
 
-        if (cmd.equals("farms")) {
+        // ───────────────
+        // farms
+        // ───────────────
+        if (cmd.equalsIgnoreCase("farms")) {
             if (args.length == 1) {
-                // Primera sugerencia = tipos de farms
-                suggestions.addAll(FarmsConfig.get().allFarms()
-                        .stream().map(FarmsConfig.FarmDef::type).toList());
+                if (sender.hasPermission("phoenixcore.farms.give")) {
+                    // Primera sugerencia = tipos de farms
+                    suggestions.addAll(FarmsConfig.get().allFarms()
+                            .stream().map(FarmsConfig.FarmDef::type).toList());
+                }
+            } else if (args.length == 2) {
+                // Cantidad sugerida
+                suggestions.add("1");
+                suggestions.add("16");
+                suggestions.add("64");
             }
         }
 

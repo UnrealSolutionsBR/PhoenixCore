@@ -9,6 +9,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.ChatColor;
 
 import java.io.File;
 import java.util.*;
@@ -186,9 +187,12 @@ public class FarmsConfig {
         ItemStack stack = new ItemStack(def.baseBlock(), Math.max(1, amount));
         ItemMeta im = stack.getItemMeta();
         if (im != null) {
-            im.setDisplayName(def.itemName());
+            im.setDisplayName(ChatColor.translateAlternateColorCodes('&', def.itemName()));
             if (def.itemLore() != null && !def.itemLore().isEmpty()) {
-                im.setLore(def.itemLore());
+                List<String> lore = def.itemLore().stream()
+                        .map(line -> ChatColor.translateAlternateColorCodes('&', line))
+                        .toList();
+                im.setLore(lore);
             }
             im.getPersistentDataContainer().set(PDC_FARM_TYPE, PersistentDataType.STRING, def.type());
             stack.setItemMeta(im);

@@ -5,13 +5,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import com.phoenixcore.locale.LocaleManager;
 
 public class PickaxeCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player player)) {
-            sender.sendMessage("§cEste comando solo puede usarse en el juego.");
+            sender.sendMessage(LocaleManager.getMessage("only-player"));
             return true;
         }
 
@@ -31,7 +32,7 @@ public class PickaxeCommand implements CommandExecutor {
                 defaultSkin // skinId desde config.yml
         ));
 
-        player.sendMessage("§a¡Se te ha entregado tu pico inicial!");
+        player.sendMessage(LocaleManager.getMessage("pickaxe-given"));
         return true;
     }
 }

@@ -9,6 +9,7 @@ import com.phoenixcore.commands.CoreCommand;
 import com.phoenixcore.commands.FarmsCommand;
 import com.phoenixcore.commands.CoreTabCompleter;
 import com.phoenixcore.farms.FarmsListener;
+import com.phoenixcore.locale.LocaleManager;
 import com.phoenixcore.farms.FarmsManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -28,6 +29,7 @@ public class PhoenixPrisonCore extends JavaPlugin {
 
         // Guardar config.yml por defecto
         saveDefaultConfig();
+        LocaleManager.loadLocale();
 
         // Crear carpetas de módulos si no existen
         createModuleFolder("pickaxes");
