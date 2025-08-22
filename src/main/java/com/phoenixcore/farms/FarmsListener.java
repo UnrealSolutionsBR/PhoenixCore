@@ -29,7 +29,6 @@ public class FarmsListener implements Listener {
     public void onPlace(BlockPlaceEvent event) {
         Block base = event.getBlockPlaced();
 
-        // Solo nos importa si el bloque colocado coincide con algún base_block de farms.yml
         if (base.getType() == Material.AIR) return;
 
         ItemStack placed = event.getItemInHand();
@@ -37,39 +36,34 @@ public class FarmsListener implements Listener {
 
         FarmsConfig cfg = FarmsConfig.get();
 
-        // Verificar si el ítem es una farm válida
+        // Verificar si el ítem es una farm válida (PDC)
         String farmType = cfg.getFarmType(placed);
-        // Compatibilidad: si aún no marcas PDC y usas el nombre antiguo, intenta mapear "Wheat Farm" → wheat
+        // Compatibilidad por nombre histórico
         if (farmType == null) {
             ItemMeta im = placed.getItemMeta();
             if (im != null && "§eWheat Farm".equals(im.getDisplayName()) && cfg.getFarm("wheat") != null) {
                 farmType = "wheat";
             }
         }
-        if (farmType == null) return; // no es una farm del plugin
+        if (farmType == null) return;
 
         FarmsConfig.FarmDef def = cfg.getFarm(farmType);
         if (def == null) return;
 
-        // Verificar que el bloque de arriba esté libre
         Block above = base.getRelative(0, 1, 0);
         if (above.getType() != Material.AIR) {
             event.getPlayer().sendMessage("§cYou need an empty block above to place the farm.");
             return;
         }
 
-        // Registrar farm (1x) en el manager con su tipo
+        // Registrar farm (1x)
         FarmsManager.setFarm(base.getLocation(), def.type(), 1);
 
-        // Spawn del cultivo maduro tras el delay configurado
+        // Spawn cultivo maduro (o bloque cosechable) tras delay
         int delay = Math.max(1, cfg.getRegrowDelayTicks());
         Bukkit.getScheduler().runTaskLater(PhoenixPrisonCore.getInstance(), () -> {
             if (base.getType() == def.baseBlock() && above.getType() == Material.AIR) {
-                above.setType(def.cropBlock());
-                if (above.getBlockData() instanceof Ageable ageable) {
-                    ageable.setAge(ageable.getMaximumAge());
-                    above.setBlockData(ageable);
-                }
+                spawnMatureCrop(above, def);
             }
         }, delay);
 
@@ -91,7 +85,7 @@ public class FarmsListener implements Listener {
 
         FarmsConfig cfg = FarmsConfig.get();
         String farmType = cfg.getFarmType(inHand);
-        // Compatibilidad por nombre antiguo
+        // Compatibilidad por nombre histórico
         if (farmType == null) {
             ItemMeta im = inHand.getItemMeta();
             if (im != null && "§eWheat Farm".equals(im.getDisplayName()) && cfg.getFarm("wheat") != null) {
@@ -118,24 +112,16 @@ public class FarmsListener implements Listener {
         int stackLimit = Math.max(1, cfg.getStackLimit());
         int farms = Math.max(1, Math.min(inHand.getAmount(), stackLimit));
 
-        // Colocar el bloque base configurado
         placeAt.setType(def.baseBlock());
-
-        // Registrar farms (tipo + cantidad)
         FarmsManager.setFarm(placeAt.getLocation(), def.type(), farms);
 
-        // Vaciar la mano (consumimos el stack completo usado)
+        // consumir el stack usado
         inHand.setAmount(0);
 
-        // Generar cultivo maduro tras el delay configurado
         int delay = Math.max(1, cfg.getRegrowDelayTicks());
         Bukkit.getScheduler().runTaskLater(PhoenixPrisonCore.getInstance(), () -> {
             if (placeAt.getType() == def.baseBlock() && above.getType() == Material.AIR) {
-                above.setType(def.cropBlock());
-                if (above.getBlockData() instanceof Ageable ageable) {
-                    ageable.setAge(ageable.getMaximumAge());
-                    above.setBlockData(ageable);
-                }
+                spawnMatureCrop(above, def);
             }
         }, delay);
 
@@ -144,7 +130,9 @@ public class FarmsListener implements Listener {
     }
 
     // ─────────────────────────────
-    // Left Click para recoger la farm (sin romper vanilla)
+    // Left Click:
+    //  - Si clickeas el bloque base → recoger toda la farm
+    //  - Si clickeas el cultivo encima (Ageable o no) con una farm debajo → cosechar (recompensa + regen)
     // ─────────────────────────────
     @EventHandler
     public void onLeftClickFarm(PlayerInteractEvent event) {
@@ -153,63 +141,51 @@ public class FarmsListener implements Listener {
 
         Block clicked = event.getClickedBlock();
         if (clicked == null) return;
-        if (!FarmsManager.isFarm(clicked.getLocation())) return;
 
-        event.setCancelled(true);
-        breakFarmAndGiveItem(clicked, event.getPlayer());
+        // 1) Si es el bloque base de una farm → recoger farm (misma lógica de antes)
+        if (FarmsManager.isFarm(clicked.getLocation())) {
+            event.setCancelled(true);
+            breakFarmAndGiveItem(clicked, event.getPlayer());
+            return;
+        }
+
+        // 2) Si es el cultivo encima de una farm (wheat/carrots o calabaza/melón, etc.) → cosechar
+        Block below = clicked.getRelative(0, -1, 0);
+        if (FarmsManager.isFarm(below.getLocation())) {
+            event.setCancelled(true); // evita rotura vanilla
+            harvestCrop(clicked, below, event.getPlayer());
+        }
     }
 
     // ─────────────────────────────
-    // Romper cultivo (recompensas + regen) → solo si debajo hay una farm registrada
-    // Acepta cualquier cultivo Ageable definido en farms.yml (wheat, carrots, etc.)
+    // Romper cultivo o bloque cosechable (wheat, carrots, pumpkin, melon, etc.)
+    // Si debajo hay farm → dar recompensa y regenerar
     // ─────────────────────────────
     @EventHandler
     public void onBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
 
-        // ——— Romper cultivo (cualquier Ageable)
+        // Caso A: cultivo Ageable (wheat, carrots, etc.)
         if (block.getBlockData() instanceof Ageable) {
             Block base = block.getRelative(0, -1, 0);
             if (!FarmsManager.isFarm(base.getLocation())) return;
 
-            Player player = event.getPlayer();
-
-            if (player.getInventory().firstEmpty() == -1) {
-                player.sendMessage("§cYour inventory is full! You cannot harvest until you make space.");
-                event.setCancelled(true);
-                return;
-            }
-
-            // Evitar drops vanilla
             event.setDropItems(false);
-
-            FarmsManager.FarmData data = FarmsManager.getFarmData(base.getLocation());
-            if (data == null) return;
-
-            FarmsConfig.FarmDef def = FarmsConfig.get().getFarm(data.type());
-            if (def == null) return;
-
-            // Dar recompensa configurada (amount_per_farm * count)
-            int total = Math.max(1, def.rewardAmountPerFarm() * Math.max(1, data.count()));
-            ItemStack reward = new ItemStack(def.rewardType(), total);
-            player.getInventory().addItem(reward);
-
-            // Regenerar el cultivo tras el delay configurado
-            int delay = Math.max(1, FarmsConfig.get().getRegrowDelayTicks());
-            Block crop = block;
-            Bukkit.getScheduler().runTaskLater(PhoenixPrisonCore.getInstance(), () -> {
-                if (base.getType() == def.baseBlock() && crop.getType() == Material.AIR) {
-                    crop.setType(def.cropBlock());
-                    if (crop.getBlockData() instanceof Ageable ageable) {
-                        ageable.setAge(ageable.getMaximumAge());
-                        crop.setBlockData(ageable);
-                    }
-                }
-            }, delay);
+            event.setCancelled(true); // manejamos la cosecha manualmente
+            harvestCrop(block, base, event.getPlayer());
             return;
         }
 
-        // ——— Romper bloque base de la farm
+        // Caso B: bloque cosechable NO Ageable (pumpkin, melon, etc.)
+        Block base = block.getRelative(0, -1, 0);
+        if (FarmsManager.isFarm(base.getLocation())) {
+            event.setDropItems(false);
+            event.setCancelled(true); // manejamos la cosecha manualmente
+            harvestCrop(block, base, event.getPlayer());
+            return;
+        }
+
+        // Caso C: romper el bloque base de la farm → recoger farm
         if (FarmsManager.isFarm(block.getLocation())) {
             event.setDropItems(false);
             event.setCancelled(true);
@@ -218,12 +194,12 @@ public class FarmsListener implements Listener {
     }
 
     // ─────────────────────────────
-    // Evitar que el cultivo se rompa por física cuando es parte de una farm
+    // Evitar que el cultivo Ageable se rompa por física cuando es parte de una farm
+    // (No aplica a pumpkin/melon, pero no hace daño mantenerlo para Ageable)
     // ─────────────────────────────
     @EventHandler
     public void onPhysics(BlockPhysicsEvent event) {
         Block block = event.getBlock();
-
         if (block.getBlockData() instanceof Ageable) {
             Block below = block.getRelative(0, -1, 0);
             if (FarmsManager.isFarm(below.getLocation())) {
@@ -233,17 +209,73 @@ public class FarmsListener implements Listener {
     }
 
     // ─────────────────────────────
-    // Lógica compartida para recoger la farm
-    // Devuelve exactamente 'count' ítems del tipo correcto (apilados hasta 64).
-    // Si no hay espacio suficiente, deja los sobrantes en el suelo.
+    // Cosecha: dar recompensa y regenerar
+    // 'crop' es el bloque del cultivo o del bloque cosechable (encima del base)
+    // 'base' es el bloque base registrado en FarmsManager
+    // ─────────────────────────────
+    private void harvestCrop(Block crop, Block base, Player player) {
+        FarmsManager.FarmData data = FarmsManager.getFarmData(base.getLocation());
+        if (data == null) return;
+
+        FarmsConfig.FarmDef def = FarmsConfig.get().getFarm(data.type());
+        if (def == null) return;
+
+        // Validar que el bloque que se intenta cosechar coincide con el configurado
+        // (para evitar cosechar cualquier cosa encima del base).
+        // Nota: Para Ageable, el tipo del bloque es el propio cultivo; para pumpkin/melon también.
+        if (crop.getType() != def.cropBlock() && !(crop.getBlockData() instanceof Ageable)) {
+            // Si no coincide el tipo y además no es Ageable (que igual aceptamos), no cosechar.
+            return;
+        }
+
+        // Espacio de inventario
+        if (player.getInventory().firstEmpty() == -1) {
+            player.sendMessage("§cYour inventory is full! You cannot harvest until you make space.");
+            return;
+        }
+
+        // Eliminar el cultivo actual
+        crop.setType(Material.AIR);
+
+        // Recompensa total: amount_per_farm * count
+        int total = Math.max(1, def.rewardAmountPerFarm() * Math.max(1, data.count()));
+        ItemStack reward = new ItemStack(def.rewardType(), total);
+        player.getInventory().addItem(reward);
+
+        // Regenerar tras delay
+        int delay = Math.max(1, FarmsConfig.get().getRegrowDelayTicks());
+        Bukkit.getScheduler().runTaskLater(PhoenixPrisonCore.getInstance(), () -> {
+            if (base.getType() == def.baseBlock()) {
+                Block above = base.getRelative(0, 1, 0);
+                if (above.getType() == Material.AIR) {
+                    spawnMatureCrop(above, def);
+                }
+            }
+        }, delay);
+    }
+
+    // ─────────────────────────────
+    // Colocar el cultivo/bloque en estado "maduro"
+    // Para Ageable lo maxeamos; para pumpkin/melon simplemente colocamos el bloque
+    // ─────────────────────────────
+    private void spawnMatureCrop(Block where, FarmsConfig.FarmDef def) {
+        where.setType(def.cropBlock());
+        if (where.getBlockData() instanceof Ageable ageable) {
+            ageable.setAge(ageable.getMaximumAge());
+            where.setBlockData(ageable);
+        }
+    }
+
+    // ─────────────────────────────
+    // Recoger la farm completa (devuelve exactamente 'count' ítems del tipo correcto)
     // ─────────────────────────────
     private void breakFarmAndGiveItem(Block baseBlock, Player player) {
         FarmsManager.FarmData data = FarmsManager.getFarmData(baseBlock.getLocation());
         if (data == null) return;
 
-        // Eliminar cultivo de arriba si existe
+        // Quitar cultivo de arriba si existe
         Block above = baseBlock.getRelative(0, 1, 0);
-        if (above.getBlockData() instanceof Ageable) {
+        if (above.getType() != Material.AIR) {
             above.setType(Material.AIR);
         }
 
@@ -253,7 +285,6 @@ public class FarmsListener implements Listener {
         while (remaining > 0) {
             int give = Math.min(64, remaining);
 
-            // Construir ítem correcto según farms.yml
             ItemStack farmStack = FarmsConfig.get().buildFarmItem(data.type(), give);
             if (farmStack == null) {
                 // Fallback de seguridad
