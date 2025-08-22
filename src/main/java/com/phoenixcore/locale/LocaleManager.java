@@ -6,6 +6,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class LocaleManager {
 
@@ -51,5 +53,26 @@ public class LocaleManager {
 
         String message = localeConfig.getString("messages." + path, path);
         return ChatColor.translateAlternateColorCodes('&', message);
+    }
+
+    /**
+     * Devuelve una lista de mensajes desde el locale.
+     * Útil para mensajes multilínea (ej: "core-info")
+     */
+    public static List<String> getMessageList(String path) {
+        if (localeConfig == null) {
+            return List.of("Locale not loaded!");
+        }
+
+        List<String> list = localeConfig.getStringList("messages." + path);
+        if (list == null || list.isEmpty()) {
+            return List.of(path);
+        }
+
+        List<String> colored = new ArrayList<>();
+        for (String line : list) {
+            colored.add(ChatColor.translateAlternateColorCodes('&', line));
+        }
+        return colored;
     }
 }

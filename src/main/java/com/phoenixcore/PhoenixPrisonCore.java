@@ -40,6 +40,9 @@ public class PhoenixPrisonCore extends JavaPlugin {
             getCommand("phoenixcore").setExecutor(new CoreCommand());
             getCommand("phoenixcore").setTabCompleter(new CoreTabCompleter());
         }
+        if (getCommand("pickaxe") != null) { // <— nuevo
+            getCommand("pickaxe").setExecutor(new com.phoenixcore.pickaxes.PickaxeCommand());
+        }
 
         getLogger().info("§aPhoenixPrisonCore habilitado correctamente.");
     }

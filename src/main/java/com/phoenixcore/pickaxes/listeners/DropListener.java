@@ -1,6 +1,7 @@
 package com.phoenixcore.pickaxes.listeners;
 
 import com.phoenixcore.PhoenixPrisonCore;
+import com.phoenixcore.locale.LocaleManager;
 import com.phoenixcore.pickaxes.PickaxeManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +19,11 @@ public class DropListener implements Listener {
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
         Player player = event.getPlayer();
+
+        // Si la opción está deshabilitada en config.yml, no aplicar
+        if (!PhoenixPrisonCore.getInstance().getConfig().getBoolean("prevent-accidental-drop", true)) {
+            return;
+        }
 
         // Solo aplicar a picos custom
         if (!PickaxeManager.isCustomPickaxe(event.getItemDrop().getItemStack())) return;
@@ -37,15 +43,15 @@ public class DropListener implements Listener {
 
             // Mostrar título y mensaje de advertencia
             player.sendTitle(
-                    "§4[!] §cCAREFUL",
-                    "§7Presiona §cQ §7otra vez para soltar tu pico",
+                    LocaleManager.getRawMessage("drop-title"),
+                    LocaleManager.getRawMessage("drop-subtitle"),
                     10, 40, 10
             );
-            player.sendMessage("§4[!] §7Presiona §cQ §7otra vez para soltar tu pico!");
+            player.sendMessage(LocaleManager.getMessage("drop-warning"));
         } else {
             // Segunda vez dentro del tiempo → permitir soltar
             lastDropAttempt.remove(uuid);
-            player.sendMessage("§cHas soltado tu pico.");
+            player.sendMessage(LocaleManager.getMessage("drop-success"));
         }
     }
 }

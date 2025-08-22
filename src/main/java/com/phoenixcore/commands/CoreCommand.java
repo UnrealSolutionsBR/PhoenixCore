@@ -11,16 +11,26 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 public class CoreCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        // Sin argumentos → mostrar ayuda
+        // ───────────────
+        //  /phoenixcore   → Info del plugin
+        // ───────────────
         if (args.length == 0) {
-            sender.sendMessage("§bPhoenixPrisonCore §7- Commands:");
-            sender.sendMessage(" §f/" + label + " reload §7→ Reload configuration and locales");
-            sender.sendMessage(" §f/" + label + " setskin <skin> §7→ Change your pickaxe skin");
+            List<String> infoLines = LocaleManager.getMessageList("core-info");
+
+            for (String line : infoLines) {
+                line = line
+                        .replace("%version%", PhoenixPrisonCore.getInstance().getDescription().getVersion())
+                        .replace("%author%", String.join(", ", PhoenixPrisonCore.getInstance().getDescription().getAuthors()))
+                        .replace("%website%", PhoenixPrisonCore.getInstance().getDescription().getWebsite());
+                sender.sendMessage(line);
+            }
             return true;
         }
 
@@ -93,7 +103,9 @@ public class CoreCommand implements CommandExecutor {
             return true;
         }
 
-        // Uso por defecto
+        // ───────────────
+        //  Uso por defecto
+        // ───────────────
         sender.sendMessage("§cUsage: /" + label + " <reload|setskin>");
         return true;
     }
