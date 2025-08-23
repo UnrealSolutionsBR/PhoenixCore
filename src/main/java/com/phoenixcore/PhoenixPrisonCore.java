@@ -11,8 +11,9 @@ import com.phoenixcore.commands.CoreTabCompleter;
 import com.phoenixcore.farms.FarmsListener;
 import com.phoenixcore.locale.LocaleManager;
 import com.phoenixcore.farms.FarmsManager;
-import org.bukkit.plugin.java.JavaPlugin;
 import com.phoenixcore.economy.EconomyHook;
+import com.phoenixcore.utils.ConsoleLogger;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 
@@ -27,32 +28,41 @@ public class PhoenixPrisonCore extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        long start = System.currentTimeMillis();
+        ConsoleLogger.bannerStart();
 
-        // Guardar config.yml por defecto
+        // Config y locales
+        long t0 = System.currentTimeMillis();
         saveDefaultConfig();
         LocaleManager.loadLocale();
+        ConsoleLogger.success("Locales", System.currentTimeMillis() - t0);
 
         // Economy (Vault) - opcional
+        t0 = System.currentTimeMillis();
         EconomyHook.init();
+        ConsoleLogger.success("Economy (Vault Hook)", System.currentTimeMillis() - t0);
 
-        // Crear carpetas de módulos si no existen
+        // Crear carpetas de módulos
+        t0 = System.currentTimeMillis();
         createModuleFolder("pickaxes");
         createModuleFolder("economy");
         createModuleFolder("mines");
         createModuleFolder("farms");
+        ConsoleLogger.success("Folders", System.currentTimeMillis() - t0);
 
-        // 🔹 Cargar farms persistentes
+        // Farms persistentes + config
+        t0 = System.currentTimeMillis();
         getServer().getWorlds().forEach(FarmsManager::reloadWorld);
+        FarmsConfig.get();
+        ConsoleLogger.success("Farms", System.currentTimeMillis() - t0);
 
-        // 🔹 Cargar configuración de tipos de farms (definiciones)
-        FarmsConfig.get(); // fuerza la carga inicial de farms/farms.yml
-
-        // Cargar módulos iniciales
+        // Pickaxes
+        t0 = System.currentTimeMillis();
         loadPickaxesModule();
-        // (futuro) loadEconomyModule();
-        // (futuro) loadMinesModule();
+        ConsoleLogger.success("Pickaxes", System.currentTimeMillis() - t0);
 
-        // Registrar comando principal
+        // Registrar comandos
+        t0 = System.currentTimeMillis();
         if (getCommand("phoenixcore") != null) {
             getCommand("phoenixcore").setExecutor(new CoreCommand());
             getCommand("phoenixcore").setTabCompleter(new CoreTabCompleter());
@@ -63,15 +73,16 @@ public class PhoenixPrisonCore extends JavaPlugin {
         if (getCommand("farms") != null) {
             getCommand("farms").setExecutor(new FarmsCommand());
         }
+        ConsoleLogger.success("Commands", System.currentTimeMillis() - t0);
 
-        getLogger().info("§aPhoenixPrisonCore habilitado correctamente.");
+        ConsoleLogger.done();
+        getLogger().info("§7Total startup time: §e" + (System.currentTimeMillis() - start) + "ms");
     }
 
     @Override
     public void onDisable() {
         // 🔹 Guardar farms al apagar
         FarmsManager.saveAllNow();
-
         getLogger().info("§cPhoenixPrisonCore deshabilitado.");
     }
 
@@ -88,8 +99,6 @@ public class PhoenixPrisonCore extends JavaPlugin {
         // Cargar configuraciones
         SkinManager.loadSkins();
         BlockValueManager.loadValues();
-
-        getLogger().info("§e[Módulo] Pickaxes cargado correctamente.");
     }
 
     // ─────────────────────────────
@@ -101,7 +110,7 @@ public class PhoenixPrisonCore extends JavaPlugin {
         if (!folder.exists()) {
             boolean created = folder.mkdirs();
             if (created) {
-                getLogger().info("§7Carpeta creada: " + name);
+                getLogger().info("Folder created: " + name);
             }
         }
     }

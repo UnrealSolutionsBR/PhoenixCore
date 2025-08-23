@@ -1,6 +1,5 @@
 package com.phoenixcore.economy;
 
-import com.phoenixcore.PhoenixPrisonCore;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -16,7 +15,9 @@ public final class EconomyHook {
 
     private static Economy econ;
     private static boolean enabled;
-    private static Logger log() { return PhoenixPrisonCore.getInstance().getLogger(); }
+
+    // Logger global → mantiene timestamp y nivel, pero sin [PhoenixPrisonCore]
+    private static final Logger CONSOLE = Logger.getLogger("Minecraft");
 
     private EconomyHook() {}
 
@@ -24,7 +25,7 @@ public final class EconomyHook {
     public static void init() {
         if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
             enabled = false;
-            log().warning("§e[Economy] Vault no encontrado. Economía deshabilitada.");
+            CONSOLE.warning("Vault not found. Economy support disabled.");
             return;
         }
 
@@ -32,16 +33,16 @@ public final class EconomyHook {
                 Bukkit.getServicesManager().getRegistration(Economy.class);
         if (rsp == null) {
             enabled = false;
-            log().warning("§e[Economy] Ningún proveedor de Economy encontrado vía Vault.");
+            CONSOLE.warning("No Economy provider found via Vault.");
             return;
         }
 
         econ = rsp.getProvider();
         enabled = (econ != null);
         if (enabled) {
-            log().info("§a[Economy] Conectado a Vault con proveedor: " + econ.getName());
+            CONSOLE.info("Connected to Vault using provider: " + econ.getName());
         } else {
-            log().warning("§e[Economy] No fue posible enlazar con un proveedor de Economy.");
+            CONSOLE.warning("Failed to hook into any Economy provider.");
         }
     }
 

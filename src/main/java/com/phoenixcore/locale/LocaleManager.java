@@ -8,10 +8,14 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class LocaleManager {
 
     private static FileConfiguration localeConfig;
+
+    // Logger global → mantiene timestamp y nivel, pero sin [PhoenixPrisonCore]
+    private static final Logger CONSOLE = Logger.getLogger("Minecraft");
 
     /**
      * Carga el archivo de idioma configurado en config.yml
@@ -25,7 +29,7 @@ public class LocaleManager {
         }
 
         localeConfig = YamlConfiguration.loadConfiguration(localeFile);
-        PhoenixPrisonCore.getInstance().getLogger().info("§e[Locale] Loaded locale: " + lang);
+        CONSOLE.info("Loaded locale: " + lang);
     }
 
     /**
