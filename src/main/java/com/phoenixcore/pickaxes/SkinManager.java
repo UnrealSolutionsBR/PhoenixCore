@@ -1,6 +1,7 @@
 package com.phoenixcore.pickaxes;
 
 import com.phoenixcore.PhoenixPrisonCore;
+import com.phoenixcore.utils.ConsoleLogger; // ← importar
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -37,7 +38,8 @@ public class SkinManager {
                 try {
                     material = Material.matchMaterial(materialStr.toUpperCase());
                     if (material == null) {
-                        PhoenixPrisonCore.getInstance().getLogger().warning("[Pickaxes] Invalid material for skin: " + key + " (" + materialStr + ")");
+                        // SIN prefijos ni Logger del plugin
+                        ConsoleLogger.warn("Invalid material for skin: " + key + " (" + materialStr + ")");
                         material = Material.WOODEN_PICKAXE;
                     }
                 } catch (Exception e) {
@@ -48,26 +50,21 @@ public class SkinManager {
             }
         }
 
-        PhoenixPrisonCore.getInstance().getLogger().info("[Pickaxes] Loaded " + skins.size() + " skins from skins.yml");
+        // Mensaje limpio, sin [PhoenixPrisonCore] ni [Pickaxes]
+        ConsoleLogger.info("Loaded " + skins.size() + " skins from skins.yml");
     }
 
-    /**
-     * Get skin by ID
-     */
+    /** Get skin by ID */
     public static SkinData getSkin(String id) {
         return skins.getOrDefault(id.toLowerCase(),
                 new SkinData("wooden", "Wooden", 1.0, Material.WOODEN_PICKAXE));
     }
 
-    /**
-     * Get all available skin IDs
-     */
+    /** Get all available skin IDs */
     public static List<String> getAllSkinIds() {
         return new ArrayList<>(skins.keySet());
     }
 
-    /**
-     * Skin data record
-     */
+    /** Skin data record */
     public record SkinData(String id, String display, double bonus, Material material) {}
 }

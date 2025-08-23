@@ -1,6 +1,7 @@
 package com.phoenixcore.pickaxes;
 
 import com.phoenixcore.PhoenixPrisonCore;
+import com.phoenixcore.utils.ConsoleLogger;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -36,12 +37,13 @@ public class BlockValueManager {
                 if (mat != null) {
                     values.put(mat, value);
                 } else {
-                    PhoenixPrisonCore.getInstance().getLogger().warning("§cBloque inválido en blocks.yml: " + key);
+                    ConsoleLogger.warn("Invalid block in blocks.yml: " + key);
                 }
             }
         }
 
-        PhoenixPrisonCore.getInstance().getLogger().info("§e[Pickaxes] Se cargaron " + values.size() + " bloques desde blocks.yml");
+        // Mensaje limpio sin prefijos
+        ConsoleLogger.info("Loaded " + values.size() + " blocks from blocks.yml");
     }
 
     /**
