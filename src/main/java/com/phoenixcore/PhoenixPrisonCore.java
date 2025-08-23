@@ -12,6 +12,7 @@ import com.phoenixcore.farms.FarmsListener;
 import com.phoenixcore.locale.LocaleManager;
 import com.phoenixcore.farms.FarmsManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import com.phoenixcore.economy.EconomyHook;
 
 import java.io.File;
 
@@ -30,6 +31,9 @@ public class PhoenixPrisonCore extends JavaPlugin {
         // Guardar config.yml por defecto
         saveDefaultConfig();
         LocaleManager.loadLocale();
+
+        // Economy (Vault) - opcional
+        EconomyHook.init();
 
         // Crear carpetas de módulos si no existen
         createModuleFolder("pickaxes");

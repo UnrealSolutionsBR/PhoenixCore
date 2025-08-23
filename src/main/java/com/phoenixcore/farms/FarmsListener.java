@@ -17,6 +17,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Orientable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.Map;
@@ -33,7 +36,6 @@ public class FarmsListener implements Listener {
     @EventHandler
     public void onPlace(BlockPlaceEvent event) {
         Block base = event.getBlockPlaced();
-
         if (base.getType() == Material.AIR) return;
 
         ItemStack placed = event.getItemInHand();
@@ -61,6 +63,13 @@ public class FarmsListener implements Listener {
             return;
         }
 
+        // Forzar orientación vertical (axis Y) para el bloque base si es orientable
+        var data = base.getBlockData();
+        if (data instanceof org.bukkit.block.data.Orientable orientable) {
+            orientable.setAxis(org.bukkit.Axis.Y);
+            base.setBlockData(orientable, false);
+        }
+
         // Registrar farm (1x)
         FarmsManager.setFarm(base.getLocation(), def.type(), 1);
 
@@ -80,7 +89,7 @@ public class FarmsListener implements Listener {
     // Shift + Right Click para colocar un stack (usa stack_limit del farms.yml)
     // ─────────────────────────────
     @EventHandler
-    public void onInteractPlaceStack(PlayerInteractEvent event) {
+    public void onInteractPlaceStack(@NotNull PlayerInteractEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (!event.getPlayer().isSneaking()) return;
@@ -119,6 +128,14 @@ public class FarmsListener implements Listener {
         int farms = Math.max(1, Math.min(inHand.getAmount(), stackLimit));
 
         placeAt.setType(def.baseBlock());
+
+        // Forzar orientación vertical (axis Y) si el bloque soporta orientación
+        var data = placeAt.getBlockData();
+        if (data instanceof org.bukkit.block.data.Orientable orientable) {
+            orientable.setAxis(org.bukkit.Axis.Y);
+            placeAt.setBlockData(orientable, false);
+        }
+
         FarmsManager.setFarm(placeAt.getLocation(), def.type(), farms);
 
         // consumir el stack usado
@@ -257,19 +274,24 @@ public class FarmsListener implements Listener {
             return;
         }
 
-        // Espacio de inventario
-        if (player.getInventory().firstEmpty() == -1) {
-            player.sendMessage(LocaleManager.getMessage("farms-harvest-inv-full"));
-            return;
-        }
-
         // Eliminar el cultivo actual
         crop.setType(Material.AIR);
 
         // Recompensa total
         int total = Math.max(1, def.rewardAmountPerFarm() * Math.max(1, data.count()));
         ItemStack reward = new ItemStack(def.rewardType(), total);
-        player.getInventory().addItem(reward);
+
+        // Intentar meter al inventario y soltar lo que no quepa a los pies del jugador
+        Map<Integer, ItemStack> leftover = player.getInventory().addItem(reward);
+        int dropped = 0;
+        if (!leftover.isEmpty()) {
+            for (ItemStack item : leftover.values()) {
+                dropped += item.getAmount();
+                player.getWorld().dropItemNaturally(player.getLocation(), item);
+            }
+            player.sendMessage(LocaleManager.getMessage("farms-harvest-inv-partial")
+                    .replace("%remaining%", String.valueOf(dropped)));
+        }
 
         // Regenerar tras delay
         int delay = Math.max(1, FarmsConfig.get().getRegrowDelayTicks());
@@ -301,6 +323,14 @@ public class FarmsListener implements Listener {
         FarmsManager.FarmData data = FarmsManager.getFarmData(baseBlock.getLocation());
         if (data == null) return;
 
+        // Bloquear si el inventario está completamente lleno
+        if (player.getInventory().firstEmpty() == -1) {
+            // Sugerencia: añade este key al locale:
+            // farms-break-inv-full: "&cYour inventory is full! Make space to pick up the farm."
+            player.sendMessage(LocaleManager.getMessage("farms-break-inv-full"));
+            return;
+        }
+
         // Quitar cultivo de arriba si existe
         Block above = baseBlock.getRelative(0, 1, 0);
         if (above.getType() != Material.AIR) {
@@ -308,7 +338,7 @@ public class FarmsListener implements Listener {
         }
 
         int remaining = Math.max(1, data.count());
-        boolean droppedOnGround = false;
+        int dropped = 0;
 
         while (remaining > 0) {
             int give = Math.min(64, remaining);
@@ -327,18 +357,18 @@ public class FarmsListener implements Listener {
 
             Map<Integer, ItemStack> leftover = player.getInventory().addItem(farmStack);
             if (!leftover.isEmpty()) {
-                leftover.values().forEach(item ->
-                        player.getWorld().dropItemNaturally(player.getLocation(), item)
-                );
-                droppedOnGround = true;
+                for (ItemStack item : leftover.values()) {
+                    dropped += item.getAmount();
+                    player.getWorld().dropItemNaturally(player.getLocation(), item);
+                }
             }
 
             remaining -= give;
         }
 
-        if (droppedOnGround) {
+        if (dropped > 0) {
             player.sendMessage(LocaleManager.getMessage("farms-harvest-inv-partial")
-                    .replace("%remaining%", String.valueOf(remaining)));
+                    .replace("%remaining%", String.valueOf(dropped)));
         }
 
         // Quitar del mundo y del manager

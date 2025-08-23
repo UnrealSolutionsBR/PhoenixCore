@@ -5,6 +5,7 @@ api-version: 1.21
 author: Phoenix
 description: The main core plugin for managing all prison server features, including pickaxes, mines, ranks, and economy.
 website: https://yourwebsite.com
+softdepend: [Vault]
 
 commands:
   pickaxe:

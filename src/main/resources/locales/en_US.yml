@@ -66,4 +66,5 @@ messages:
   farms-place-placed-stacked: "&eYou placed &f%count%x &6%farm_name% &ein one block!"
   farms-harvest-inv-full: "&cYour inventory is full! You cannot harvest until you make space."
   farms-harvest-inv-partial: "&eYour inventory was partially full. &7Remaining farms dropped: &f%remaining%"
+  farms-break-inv-full: "&cYour inventory is full! Make space to pick up the farm."
   farms-sneak-to-break: "&cSneak (Shift) to remove the farm."
